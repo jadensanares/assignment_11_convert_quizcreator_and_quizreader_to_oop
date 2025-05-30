@@ -10,8 +10,8 @@ class QuizFileHandler:
             for question in question_list:
                 file.write(question.question_text + "\n")
                 for option_letter, answer_text in question.choices.items():
-                    file.write(f"{option_letter}:{answer_text}\n")
-                file.write("ANSWER:" + question.correct + "\n\n")
+                    file.write(f"{option_letter}: {answer_text}\n")
+                file.write("ANSWER: " + question.correct + "\n\n")
     @classmethod
     def load_questions(cls):
         with open("created_quiz_questions.txt", "r", encoding="utf-8") as file:
