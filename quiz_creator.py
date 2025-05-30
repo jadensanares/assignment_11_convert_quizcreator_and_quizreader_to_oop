@@ -30,3 +30,40 @@ class QuizCreator:
             
         # Returning a question object using gathered input
         return Question(question_text, choices, correct_answer)
+        
+    def display_feedback(self, question): 
+        # Show visual feedback with green/red emojies for the correct/incorrect options
+        print("Question Feedback:")
+        for choice, answer in question.choices.items():
+            if choice == question.correct_answer:
+                print(choice + ": " + answer + " 🟩")
+            else:
+                print(choice + ": " + answer + " 🟥")
+    
+    def run(self):
+        # Wwelcome message to the user
+        print("Hello User, welcome to this Quiz Creator!")
+
+        while True:
+            questions = self.creat_question()
+            self.questions.append(question)
+
+            # Display of emoji-based answer feedback
+            self.display_feedback(question)
+
+            # Ask if the user wants to create another questions
+            another = input("Would you like to add another question? Type either (yes) or (no): ").lower()
+            if another != "yes":
+                break
+    
+        # Save all created quesitons to file using the helper class
+        QuizFileHandler.save_questions(self.questions)
+
+        # Thank you message to end the program
+        print("\nThank you for making the quiz! ^-^")
+
+# Entry Point
+if __name__ == "__main__":
+    creator = QuizCreator()
+    creator.run
+    
