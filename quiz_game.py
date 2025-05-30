@@ -1,107 +1,77 @@
-# This is the main controller for playing the quiz game
-
-# Adding a simple creative upgrade: colored text and timed messages
 import random
 import time
 from colorama import Fore, Style, init
-init(autoreset=True) # So that it auto resets the color after each print
+from question import Question
 
-# INITIALIZE the QUIZ Game
+init(autoreset=True)  # Automatically reset color after each print
 
-# DISPLAY the welcome message to the players
-print(Fore.CYAN + "🧐 Welcome to this short Math Quiz Game! Let's test your problem solving skills!")
-time.sleep(1)
-print(Fore.CYAN + "Let's test your math solving skills!\n")
-time.sleep(1)
+class QuizGame:
+    def __init__(self, filename="created_quiz_questions.txt"):
+        self.filename = filename
+        self.questions = []
+        self.score = 0
 
-# ASK the user to inpute filename of quiz (its default is set to "created_quiz_questions.txt")
-filename = input("Enter the filename of the quiz (press Enter to user 'created_quiz_questions.txt'): ")
-if filename.strip() == "":
-    filename = "created_quiz_questions.txt"
+    def load_questions(self):
+        try:
+            with open(self.filename, "r") as file:
+                lines = file.readlines()
 
-# CALL function to load up the questions form the created text file
-#      OPEN file in read mode 
-#      READ all lines
-#      INITIALIZE an empty list to store each question set
-#      FOR each line group (question + choices + correct answer)
-#           break down the text and extract:
-#             Question, Choices (a, b , c, d), Correct Answer
-#           ADD each question set to the list
-#      RETURN list of break downed txt questions
+            line_index = 0
+            while line_index < len(lines):
+                line = lines[line_index].strip()
+                if line == "":
+                    line_index += 1
+                    continue
+                question_text = line
+                choices = {}
+                for i in range(1, 5):
+                    key, value = lines[line_index + i].strip().split(": ")
+                    choices[key.lower()] = value
+                correct_line = lines[line_index + 5].strip()
+                correct_answer = correct_line.split(": ")[1].lower()
+                question = Question(question_text, choices, correct_answer)
+                self.questions.append(question)
+                line_index += 7
+        except FileNotFoundError:
+            print(Fore.RED + " ⚠️ CAUTION⚠️ Cannot locate the file. Please type in an existing filename and check if it is correct.")
+        except Exception as e:
+            print(Fore.RED + f"Error loading questions: {e}")
 
-def load_questions_from_file(filename):
-    questions = []
-    try:
-        with open(filename, "r") as file:
-            lines = file.readlines()
+    def start_quiz(self):
+        print(Fore.CYAN + "🧐 Welcome to this short Math Quiz Game! Let's test your problem solving skills!")
+        time.sleep(1)
+        print(Fore.CYAN + "Let's test your math solving skills!\n")
+        time.sleep(1)
 
-        line_index = 0
-        while line_index < len(lines):
-            line = lines[line_index].strip()
-            if line == "":
-                line_index += 1
-                continue
-            question = line
-            choices = {}
-            for choice_number in range (1, 5):
-                key, value = lines[line_index + choice_number].strip().split(": ")
-                choices[key] = value
-            correct_answer_line = lines[line_index + 5].strip()
-            correct_answer = correct_answer_line.split(": ")[1]
-            questions.append({"question": question, "choices": choices, "answer": correct_answer})
-            line_index += 7
-    except FileNotFoundError:
-        print(Fore.RED + " ⚠️ CAUTION⚠️ Cannot locate the file. Please type in an existing filename and check if it is correct.")
-        return []
-    return questions
+        filename = input("Enter the filename of the quiz (press Enter to use 'created_quiz_questions.txt'): ").strip()
+        if filename:
+            self.filename = filename
 
-# IF no questions were found
-#   DISPLAY an error message
-#   END program
-quiz_data = load_questions_from_file(filename)
-if not quiz_data:
-    print(Fore.RED +"No questions were found. Exiting the quiz game.")
-    exit()
+        self.load_questions()
 
-# SHUFFLE the list of questions (so that the user will answer the questions in a randomized way)
-random.shuffle(quiz_data)
+        if not self.questions:
+            print(Fore.RED + "No questions were found. Exiting the quiz game.")
+            return
 
-# SET score to 0
-# SET total to number of questions
-score = 0
-total = len(quiz_data)
+        random.shuffle(self.questions)
 
-# FOR each questions in the list
-#       DISPLAY questions and choices (a to d)  
-#       ASK user for their answer (a, b, c, or d)
-#       IF user's answer is equal to the correct answer
-#           DISPLAY "Correct Answer!" message text
-#           INCREMENT score 
-#       ELSE    
-#           DISPLAY "Incorrect Answer." message text
-for item in quiz_data:
-    print("\n" + Fore.BLUE + "📃 " + item["question"])
-    for key in sorted(item["choices"].keys()):
-        print(f" {key}: {item['choices'][key]}")
-    while True:
-        user_answer = input("Your answer (a, b, c, or d): ").lower()
-        if user_answer in ['a', 'b', 'c', 'd']:
-            break
-        else:
+        for question in self.questions:
+            question.display()
+            answer = self.get_valid_answer()
+            if question.check_answer(answer):
+                print(Fore.GREEN + "🟩 Your Answer is Correct!\n")
+                self.score += 1
+            else:
+                correct_letter = question.correct
+                correct_text = question.choices[correct_letter]
+                print(Fore.RED + f"🟥 The Answer is Incorrect. The correct answer was {correct_letter}: {correct_text}\n")
+
+        print(Fore.MAGENTA + f"You've completed the Quiz! You scored: {self.score} out of {len(self.questions)}")
+        print(Fore.MAGENTA + "Thank you for playing this short Math Quiz Game!")
+
+    def get_valid_answer(self):
+        while True:
+            answer = input("Your answer (a, b, c, or d): ").lower()
+            if answer in ['a', 'b', 'c', 'd']:
+                return answer
             print(Fore.YELLOW + "Invalid input. Enter only a, b, c, or d.")
-    if user_answer == item["answer"]:
-        print(Fore.GREEN + "🟩 Your Answer is Correct!\n")
-        score += 1
-    else:
-        correct_letter = item["answer"]
-        correct_text = item["choices"][correct_letter]
-        print(Fore.RED + f"🟥 The Answer is Incorrect. The correct answer was {correct_letter}: {correct_text}\n")
-
-# after all of the questions were displayed
-#       DISPLAY final score out of how many questions were provided
-print(Fore.MAGENTA + f"You've completed the Quiz! You scored: {score} out of {total}")
-
-# DISPLAY a thank you message in the end
-print(Fore.MAGENTA +"Thank you for playing this short Math Quiz Game! 🙋‍♂️")
-
-# END the Quiz Game
