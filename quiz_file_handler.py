@@ -4,7 +4,7 @@ from question import Question
 
 class QuizFileHandler:
     @classmethod
-    def save_questions(question_list):
+    def save_questions(cls, question_list):
         
         with open("created_quiz_questions.txt", "w", encoding="utf-8") as file:
             for question in question_list:
@@ -13,7 +13,7 @@ class QuizFileHandler:
                     file.write(f"{option_letter}:{answer_text}\n")
                 file.write("ANSWER:" + question.correct + "\n\n")
     @classmethod
-    def load_questions():
+    def load_questions(cls):
         with open("created_quiz_questions.txt", "r", encoding="utf-8") as file:
             lines = [line.strip() for line in file if line.strip()]
 
